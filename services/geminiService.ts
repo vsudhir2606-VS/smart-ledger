@@ -1,6 +1,6 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { ReceiptEntry } from "../types";
+import { GoogleGenAI } from "@google/genai";
+import { ReceiptEntry } from "../types.ts";
 
 export const analyzeFinanceData = async (entries: ReceiptEntry[]) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });

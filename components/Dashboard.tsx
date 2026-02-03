@@ -13,7 +13,7 @@ import {
   Pie, 
   Cell 
 } from 'recharts';
-import { ReceiptEntry, ReceiptStatus, FinancialSummary } from '../types';
+import { ReceiptEntry, ReceiptStatus, FinancialSummary } from '../types.ts';
 
 interface DashboardProps {
   entries: ReceiptEntry[];
@@ -59,17 +59,17 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, aiAnalysis }) => {
   return (
     <div className="space-y-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
-          <span className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Revenue (Paid)</span>
-          <span className="text-3xl font-bold text-emerald-600 mt-2">₹{summary.totalRevenue.toLocaleString()}</span>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Revenue (Paid)</span>
+          <span className="text-2xl md:text-3xl font-bold text-emerald-600 mt-2">₹{summary.totalRevenue.toLocaleString()}</span>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
-          <span className="text-sm font-medium text-slate-500 uppercase tracking-wider">Pending Amount</span>
-          <span className="text-3xl font-bold text-amber-500 mt-2">₹{summary.pendingAmount.toLocaleString()}</span>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending Amount</span>
+          <span className="text-2xl md:text-3xl font-bold text-amber-500 mt-2">₹{summary.pendingAmount.toLocaleString()}</span>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 border-red-100 flex flex-col items-center bg-red-50">
-          <span className="text-sm font-medium text-red-800 uppercase tracking-wider">Cancelled Total</span>
-          <span className="text-3xl font-bold text-red-600 mt-2">₹{summary.cancelledAmount.toLocaleString()}</span>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 border-red-100 flex flex-col items-center bg-red-50 text-center">
+          <span className="text-xs font-semibold text-red-800 uppercase tracking-wider">Cancelled Total</span>
+          <span className="text-2xl md:text-3xl font-bold text-red-600 mt-2">₹{summary.cancelledAmount.toLocaleString()}</span>
         </div>
       </div>
 
@@ -82,7 +82,7 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, aiAnalysis }) => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" />
                 <YAxis tickFormatter={(value) => `₹${value}`} />
-                <Tooltip formatter={(value) => `₹${value}`} />
+                <Tooltip formatter={(value) => [`₹${value.toLocaleString()}`, 'Amount']} />
                 <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -107,7 +107,7 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, aiAnalysis }) => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={(value) => [value, 'Count']} />
                   <Legend verticalAlign="bottom" height={36}/>
                 </PieChart>
              </ResponsiveContainer>

@@ -1,17 +1,30 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import ReceiptForm from './components/ReceiptForm';
-import ReceiptTable from './components/ReceiptTable';
-import Dashboard from './components/Dashboard';
-import { ReceiptEntry, ReceiptStatus } from './types';
-import { analyzeFinanceData } from './services/geminiService';
+import ReceiptForm from './components/ReceiptForm.tsx';
+import ReceiptTable from './components/ReceiptTable.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import { ReceiptEntry, ReceiptStatus } from './types.ts';
+import { analyzeFinanceData } from './services/geminiService.ts';
 
 const STORAGE_KEY = 'smart_receipt_ledger_data';
 
+// Fallback for crypto.randomUUID() which requires secure context
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 const App: React.FC = () => {
   const [entries, setEntries] = useState<ReceiptEntry[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to load data from localStorage", e);
+      return [];
+    }
   });
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -22,7 +35,10 @@ const App: React.FC = () => {
 
   const generateReceiptNo = useCallback(() => {
     const lastNum = entries.length > 0 
-      ? Math.max(...entries.map(e => parseInt(e.receiptNo.split(' - ')[1]))) 
+      ? Math.max(...entries.map(e => {
+          const parts = e.receiptNo.split(' - ');
+          return parts.length > 1 ? parseInt(parts[1]) : 0;
+        })) 
       : 0;
     const nextNum = lastNum + 1;
     return `AB_RNC - ${nextNum.toString().padStart(2, '0')}`;
@@ -33,7 +49,7 @@ const App: React.FC = () => {
     const totalAmount = amount - data.discount;
     const newEntry: ReceiptEntry = {
       ...data,
-      id: crypto.randomUUID(),
+      id: generateId(),
       receiptNo: generateReceiptNo(),
       amount,
       totalAmount,
@@ -57,9 +73,15 @@ const App: React.FC = () => {
       return;
     }
     setIsAnalyzing(true);
-    const analysis = await analyzeFinanceData(entries);
-    setAiAnalysis(analysis);
-    setIsAnalyzing(false);
+    try {
+      const analysis = await analyzeFinanceData(entries);
+      setAiAnalysis(analysis);
+    } catch (err) {
+      console.error("AI Analysis failed", err);
+      setAiAnalysis("Error generating insights. Please try again later.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -81,7 +103,7 @@ const App: React.FC = () => {
             onClick={handleAIAnalysis}
             disabled={isAnalyzing}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all ${
-              isAnalyzing ? 'bg-slate-200 text-slate-400' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 shadow-sm border border-indigo-200'
+              isAnalyzing ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 shadow-sm border border-indigo-200'
             }`}
           >
             {isAnalyzing ? (
